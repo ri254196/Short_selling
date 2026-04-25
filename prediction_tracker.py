@@ -1,7 +1,6 @@
 import sqlite3
 import pandas as pd
 from datetime import datetime, timedelta
-import yfinance as yf
 
 class PredictionTracker:
     def __init__(self, db_path="predictions.db"):
