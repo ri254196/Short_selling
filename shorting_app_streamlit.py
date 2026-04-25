@@ -331,7 +331,7 @@ with tab2:
 
 with tab3:
     st.markdown("## 🔧 Verify Predictions")
-    st.info("Update next-day prices to verify prediction accuracy and improve the model")
+    st.info("Automatically fetch next-day prices to verify prediction accuracy and improve the model")
     
     # Get pending predictions
     today = datetime.now().strftime("%Y-%m-%d")
@@ -339,6 +339,30 @@ with tab3:
     
     if not pending.empty:
         st.markdown(f"### Pending Predictions for {today}")
+        
+        # Auto-fetch button
+        if st.button("🔄 Auto-Fetch All Prices", type="primary"):
+            with st.spinner("Fetching prices from Yahoo Finance..."):
+                updated_count = 0
+                for _, row in pending.iterrows():
+                    symbol = row['symbol']
+                    current_price = row['actual_price']
+                    
+                    # Fetch current price
+                    fetched_price = tracker.fetch_stock_price(symbol)
+                    
+                    if fetched_price:
+                        tracker.update_actual_price(today, symbol, fetched_price)
+                        updated_count += 1
+                        st.success(f"✅ {symbol}: INR {fetched_price:.2f}")
+                    else:
+                        st.warning(f"⚠️ {symbol}: Could not fetch price")
+                
+                st.success(f"Updated {updated_count} predictions!")
+                st.rerun()
+        
+        st.markdown("---")
+        st.markdown("### Manual Update (if auto-fetch fails)")
         
         for _, row in pending.iterrows():
             symbol = row['symbol']

@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 from datetime import datetime, timedelta
+import yfinance as yf
 
 class PredictionTracker:
     def __init__(self, db_path="predictions.db"):
@@ -230,6 +231,31 @@ class PredictionTracker:
         conn.close()
         
         return df
+    
+    def fetch_stock_price(self, symbol):
+        """Fetch current stock price from Yahoo Finance"""
+        try:
+            # Convert NSE symbol to Yahoo Finance format
+            # NSE: TCS -> Yahoo: TCS.NS
+            ticker = f"{symbol}.NS"
+            
+            # Fetch data
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            current_price = info.get('currentPrice') or info.get('regularMarketPrice')
+            
+            if current_price:
+                return current_price
+            else:
+                # Fallback: try to get from history
+                hist = stock.history(period="1d")
+                if not hist.empty:
+                    return hist['Close'].iloc[-1]
+            
+            return None
+        except Exception as e:
+            print(f"Error fetching price for {symbol}: {e}")
+            return None
     
     def get_performance_report(self):
         """Generate a comprehensive performance report"""
